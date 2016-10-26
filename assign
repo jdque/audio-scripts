@@ -1,0 +1,153 @@
+desc:MPD224 Note Assign
+
+slider1:10<1,16,1>Record channel;
+slider2:9<1,16,1>Play channel;
+
+@init
+
+TRUE = 1;
+FALSE = 0;
+PLAY_CHANNEL = $x08;
+RECORD_CHANNEL = $x09;
+NOTE_OFF = 8;
+NOTE_ON = 9;
+CONTROL_CHANGE = 11;
+
+recording = FALSE;
+armed_note = -1;
+
+//MAPPING-------------------------------------------------------
+
+map = 1000;
+ent_size = 9;
+
+function set_mapping(from_note, to_off, to_channel, to_note)
+(
+  gmem[from_note*ent_size] = 1;
+  gmem[from_note*ent_size+1 + 2*to_off+0] = to_channel;
+  gmem[from_note*ent_size+1 + 2*to_off+1] = to_note;
+);
+
+function clear_mapping(from_note) local(off)
+(
+  gmem[from_note*ent_size] = 0;
+  off = 0;
+  loop(4,
+    set_mapping(from_note, off, -1, -1);
+    off += 1;
+  );
+);
+
+function has_mapping(from_note) local(has)
+(
+  gmem[from_note*ent_size] == 1 ? (
+    has = TRUE;
+  ) : (
+    has = FALSE;
+  );
+  has;
+);
+
+function get_mapping_channel(from_note, to_off)
+(
+  gmem[from_note*ent_size+1 + 2*to_off+0]; 
+);
+
+function get_mapping_note(from_note, to_off)
+(
+  gmem[from_note*ent_size+1 + 2*to_off+1];
+);
+
+//BUFFER--------------------------------------------------------
+
+note_buffer = 500;
+cur_buffer_off = 0;
+
+function reset_buffer()
+(
+  cur_buffer_off = 0;
+  note_buffer[0] = -1;
+  note_buffer[1] = -1;
+  note_buffer[2] = -1;
+  note_buffer[3] = -1;
+  note_buffer[4] = -1;
+  note_buffer[5] = -1;
+  note_buffer[6] = -1;
+  note_buffer[7] = -1;
+);
+
+function buffer_note(buf_channel, buf_note)
+(
+  cur_buffer_off == 4 ? (
+    cur_buffer_off = 0;
+  );
+  note_buffer[cur_buffer_off*2+0] = buf_channel;
+  note_buffer[cur_buffer_off*2+1] = buf_note;
+  cur_buffer_off += 1;
+);
+
+reset_buffer();
+
+@block
+
+while (
+  midirecv(offset, msg1, msg2, msg3) ? (
+    type = msg1 >> 4;
+    channel = msg1 & $x0f;
+    
+    channel == RECORD_CHANNEL ? (
+      type == NOTE_ON ? (
+        recording == FALSE ? (
+          reset_buffer();
+          recording = TRUE;
+          armed_note = msg2;
+          midisend(offset, NOTE_ON << 4 + channel, msg2, msg3);
+        ) : (
+          msg2 == armed_note ? (
+            set_mapping(armed_note, 0, note_buffer[0], note_buffer[1]);
+            set_mapping(armed_note, 1, note_buffer[2], note_buffer[3]);
+            set_mapping(armed_note, 2, note_buffer[4], note_buffer[5]);
+            set_mapping(armed_note, 3, note_buffer[6], note_buffer[7]);
+            recording = FALSE;
+            armed_note = -1;
+            midisend(offset, NOTE_OFF << 4 + channel, msg2, msg3);
+          );
+        );
+      );
+      type == NOTE_OFF ? (
+        recording == TRUE ? (
+          midisend(offset, NOTE_ON << 4 + channel, armed_note, $xff);
+        );
+      );
+      type == CONTROL_CHANGE ? (
+        recording == TRUE && msg2 == 0 && msg3 == 0 ? (
+          clear_mapping(armed_note);
+        );
+      );
+    );
+
+    channel == PLAY_CHANNEL ? (
+      (type == NOTE_ON || type == NOTE_OFF) && has_mapping(msg2) == TRUE ? (
+        play_off = 0;
+        loop(4,
+          to_channel = get_mapping_channel(msg2, play_off);
+          to_note = get_mapping_note(msg2, play_off);
+          to_channel != -1 && to_note != -1 ? (
+            midisend(offset, type << 4 + to_channel, to_note, msg3);
+          );
+          play_off += 1;
+        );
+      );
+    );
+    
+    channel != RECORD_CHANNEL && channel != PLAY_CHANNEL ? (
+      type == NOTE_ON ? (
+        recording == TRUE ? (
+          buffer_note(channel, msg2);
+        );
+      );
+      midisend(offset, msg1, msg2, msg3);
+    );
+    1;
+  );
+);
