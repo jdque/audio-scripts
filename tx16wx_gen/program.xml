@@ -1,0 +1,10 @@
+<tx:program
+    xmlns:tx="http://www.tx16wx.com/2.0/program"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.tx16wx.com/2.0/program program.xsd"
+    tx:created-by="20402"
+    tx:compat="2400"
+    tx:name="txprog"
+    >
+    <tx:range tx:lowkey="C-1" tx:highkey="G9" tx:lowvel="0" tx:highvel="127"/>
+</tx:program>

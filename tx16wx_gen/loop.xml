@@ -1,0 +1,3 @@
+<tx:root xmlns:tx="tx">
+    <tx:loop tx:name="" tx:start="0"  tx:end="1" tx:mode="Slice"/>
+</tx:root>

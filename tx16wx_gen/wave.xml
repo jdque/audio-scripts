@@ -1,0 +1,4 @@
+<tx:root xmlns:tx="tx">
+    <tx:wave tx:id="1" tx:path="TR-707Kick01.wav" tx:root="no" tx:fine="0">
+    </tx:wave>
+</tx:root>

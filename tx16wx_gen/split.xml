@@ -1,0 +1,3 @@
+<tx:root xmlns:tx="tx">
+    <tx:split tx:wave="0" tx:key="C3" tx:loop="-1" tx:release="-1"/>
+</tx:root>
