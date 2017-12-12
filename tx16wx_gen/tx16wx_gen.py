@@ -149,46 +149,55 @@ class Program:
         tree = etree.ElementTree(stripped_root)
         return tree
 
-def generate(path, recursive=False):
+def generate(root_path, recursive=False):
     bd = {
-        'pattern': re.compile('(kick|kik|bdrum)', flags=re.IGNORECASE),
+        'pattern': re.compile('(bd|bass|kick|kik|bdrum)', flags=re.IGNORECASE),
         'required': True
     }
     sn = {
-        'pattern': re.compile('(snare|snr)', flags=re.IGNORECASE),
+        'pattern': re.compile('(snare|snar|snr|sd)', flags=re.IGNORECASE),
         'required': True
     }
     rm = {
-        'pattern': re.compile('(rim|stick)', flags=re.IGNORECASE),
+        'pattern': re.compile('(rim|stick|side|shot)', flags=re.IGNORECASE),
         'required': False
     }
     ch = {
-        'pattern': re.compile('(closed|hat_c|cht)', flags=re.IGNORECASE),
+        'pattern': re.compile('(close|hat c|c hat|hat_c|c_hat|hhc|hh c|hh cl|chat|chh|cht|cls|clhh)', flags=re.IGNORECASE),
         'required': True
     }
     oh = {
-        'pattern': re.compile('(open|hat_o|oht)', flags=re.IGNORECASE),
-        'required': True
+        'pattern': re.compile('(open|hat o|o hat|hat_o|o_hat|hho|hh o|hh open|hat|ohat|ohh|oht|opn|ophh)', flags=re.IGNORECASE),
+        'required': False
+    }
+    cr = {
+        'pattern': re.compile('(crash|splash|ride)', flags=re.IGNORECASE),
+        'required': False
     }
     to = {
         'pattern': re.compile('(tom)', flags=re.IGNORECASE),
         'required': False
     }
+    cl = {
+        'pattern': re.compile('(clap)', flags=re.IGNORECASE),
+        'required': False
+    }
     pc = {
-        'pattern': re.compile('(perc|prc|clap|bell|conga|clave|shaker|triangle|snap)', flags=re.IGNORECASE),
+        'pattern': re.compile('(perc|prc|cow|bell|bongo|conga|clave|shake|triangle|snap|tamb|cabasa|kalimba)', flags=re.IGNORECASE),
         'required': False
     }
 
     instr_layout = [
         [None, None, None, None],
         [ pc ,  pc ,  pc ,  pc ],
-        [ pc ,  pc ,  ch ,  oh ],
-        [ bd ,  rm ,  sn , None],
+        [ cl ,  to ,  ch ,  oh ],
+        [ bd ,  rm ,  sn ,  cr ],
     ]
 
-    exclude = re.compile('MaxV', flags=re.IGNORECASE)
+    exclude = re.compile('(MaxV|.asd)', flags=re.IGNORECASE)
 
-    paths = [root for root, dirs, files in os.walk(path)] if recursive else [path]
+    success_paths = []
+    paths = [root for root, dirs, files in os.walk(root_path)] if recursive else [root_path]
     for path in paths:
         dir_name = os.path.basename(path)
         dir_files = os.listdir(path)
@@ -203,11 +212,19 @@ def generate(path, recursive=False):
             out_path = path + os.path.sep + dir_name + ".txprog"
             out_tree.write(out_path, pretty_print=True)
             print("Success: " + path)
+            success_paths.append(path)
         except:
             print("Fail: " + path)
+    print("Succeeded: " + str(len(success_paths)))
+    print("Failed: " + str(len(paths) - len(success_paths)))
 
-def clean(path, recursive=False):
-    paths = [root for root, dirs, files in os.walk(path)] if recursive else [path]
+    with open(os.path.join(root_path, 'programs.txt'), 'w') as f:
+        for path in success_paths:
+            rel_path = path.replace(os.path.commonprefix([path, root_path]), '').replace('\\', '/')[1:]
+            f.write(rel_path + '\n')
+
+def clean(root_path, recursive=False):
+    paths = [root for root, dirs, files in os.walk(root_path)] if recursive else [root_path]
     for path in paths:
         for file in os.listdir(path):
             if file.find('.txprog') >= 0:
