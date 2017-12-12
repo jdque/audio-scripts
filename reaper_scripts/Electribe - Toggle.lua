@@ -1,5 +1,9 @@
 isNewValue, fileName, sectionId, cmdId, mode, resolution, value = reaper.get_action_context()
 
+local function GetStateName(fileName)
+  return fileName:sub(fileName:find('%(') + 1, fileName:find('%)') - 1)
+end
+
 stateName = GetStateName(fileName)
 state = reaper.GetExtState("electribe", stateName)
 
@@ -14,7 +18,3 @@ else
 end
 
 reaper.SetExtState("electribe", stateName, state, false)
-
-local function GetStateName(fileName)
-  return fileName:sub(fileName:find('%(') + 1, fileName:find('%)') - 1)
-end
