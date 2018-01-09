@@ -40,6 +40,25 @@ local function ProgramChange()
   -- if selected instrument is sampler, change sample, otherwise change preset
 end
 
+local function ShiftInputRoot()
+  _, _, _, _, _, _, value = RP.get_action_context()
+
+  adjValue = value - 64
+
+  controlTrack = RP.GetTrack(0, 0)
+  toolFx = RP.TrackFX_GetByName(controlTrack, "MIDI Tool v2", false)
+  RP.TrackFX_SetParam(controlTrack, toolFx, 10, adjValue)
+end
+
+local function SelectScale()
+  _, _, _, _, _, _, value = RP.get_action_context()
+
+  controlTrack = RP.GetTrack(0, 0)
+  mapToKeyFx = RP.TrackFX_GetByName(controlTrack, "MIDI Map To Key v2", false)
+  --TODO: use TrackFX_GetParameterStepSizes
+  RP.TrackFX_SetParam(controlTrack, mapToKeyFx, 1, value * (17 / 127))
+end
+
 local function SelectChord()
   _, _, _, _, _, _, value = RP.get_action_context()
 
