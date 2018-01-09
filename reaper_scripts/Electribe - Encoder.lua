@@ -89,6 +89,10 @@ local function Main()
     TransposeSelectedTrackInput()
   elseif action == "program_change" then
     ProgramChange()
+  elseif action == "shift_root" then
+    ShiftInputRoot()
+  elseif action == "select_scale" then
+    SelectScale()
   elseif action == "select_chord" then
     SelectChord()
   elseif action == "select_voicing" then
