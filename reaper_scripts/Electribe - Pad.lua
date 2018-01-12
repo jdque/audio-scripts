@@ -23,7 +23,7 @@ end
 local function OutSelectedTrack()
   for trackIdx = 0, RP.CountTracks(0) - 1 do
     if RP.IsTrackSelected(RP.GetTrack(0, trackIdx)) == true then
-      RP.StuffMIDIMessage(0, 144, (trackIdx + ROOT_NOTE) - 1, 128)
+      RP.StuffMIDIMessage(0, 144, (trackIdx + ROOT_NOTE) - 1, 127)
       break
     end
   end
@@ -67,7 +67,7 @@ local function SelectTrack(trackIdx)
 
     -- show/hide media explorer if track is a sampler
     _, fxName = RP.TrackFX_GetFXName(track, instrFx, "")
-    if fxName == "VSTi: ReaSamplOmatic5000 (Cockos)" or fxName:find("RS5K") != nil then
+    if fxName == "VSTi: ReaSamplOmatic5000 (Cockos)" or fxName:find("RS5K") ~= nil then
       mediaExplorerState = RP.GetToggleCommandState(50124)
       if isOpen == true and mediaExplorerState == 1 or isOpen == false and mediaExplorerState == 0 then
         RP.Main_OnCommand(50124, 0) --toggle media explorer
@@ -85,7 +85,7 @@ local function SelectTrack(trackIdx)
 
     -- show/hide media explorer if track is a sampler
     _, fxName = RP.TrackFX_GetFXName(fxTrack, fxIdx, "")
-    if fxName == "VSTi: ReaSamplOmatic5000 (Cockos)" or fxName:find("RS5K") != nil then
+    if fxName == "VSTi: ReaSamplOmatic5000 (Cockos)" or fxName:find("RS5K") ~= nil then
       mediaExplorerState = RP.GetToggleCommandState(50124)
       if mediaExplorerState == 1 then
         RP.Main_OnCommand(50124, 0) --toggle media explorer
